@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitxa de Client · Martí Roca de Torres</title>
+<script>
+  const CONFIG = {
+    EMAILJS_PUBLIC_KEY:  'l1Z7VjGNIUQrHiYt1',
+    EMAILJS_SERVICE_ID:  'Fitxa_Clients',
+    EMAILJS_TEMPLATE_ID: 'template_yxr1z27',
+    SHEETS_URL: 'https://script.google.com/macros/s/AKfycbwxLjqoO4BhWKdAKvtXmD_v_5gXfh-pXRRnCg4QtVzPV6evHLnc1RMZTA91BZQ37b2o/exec',
+  };
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:#0f0f0f;font-family:'DM Sans',sans-serif;color:#d8d0c0;min-height:100vh}
+
+.progress-bar{height:3px;background:#1a1a1a;position:fixed;top:0;left:0;right:0;z-index:100}
+.progress-fill{height:100%;background:#c9a84c;transition:width .5s ease}
+
+.wrap{max-width:680px;margin:0 auto;padding:0 20px 80px}
+
+.hero{padding:3rem 0 2rem;border-bottom:1px solid #222}
+.hero-sub{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#887860;margin-bottom:12px}
+.hero-title{font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:#f0e8d8;line-height:1.1;margin-bottom:10px}
+.hero-desc{font-size:14px;color:#9a9080;line-height:1.65}
+
+.screen{display:none}
+.screen.active{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.block-label{display:flex;align-items:center;gap:12px;margin:2.5rem 0 1.25rem}
+.block-num{width:30px;height:30px;border-radius:50%;background:#c9a84c;color:#111;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.block-title{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#c9a84c;font-weight:500}
+
+.field{margin-bottom:1.25rem}
+.field label{display:block;font-size:12px;color:#888070;margin-bottom:7px;letter-spacing:.05em}
+.field input[type=text],
+.field input[type=email],
+.field select,
+.field textarea{
+  width:100%;background:#181818;border:1px solid #2e2e2e;border-radius:7px;
+  padding:11px 14px;font-size:14px;color:#e8e0d0;font-family:'DM Sans',sans-serif;
+  outline:none;transition:border-color .2s;-webkit-appearance:none
+}
+.field textarea{resize:vertical;min-height:90px;line-height:1.6}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#c9a84c55}
+.field select option{background:#181818;color:#e8e0d0}
+
+.radio-group{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.radio-group.col1{grid-template-columns:1fr}
+.radio-group.col3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:500px){.radio-group.col3{grid-template-columns:1fr 1fr}.radio-group.col1-mob{grid-template-columns:1fr}}
+
+.ropt{
+  padding:11px 14px;background:#181818;border:1px solid #2e2e2e;border-radius:7px;
+  cursor:pointer;font-size:13px;color:#b8b0a0;transition:all .15s;text-align:center;
+  line-height:1.35;user-select:none
+}
+.ropt:hover{border-color:#3a3a2a;color:#e8e0d0;background:#1e1e1e}
+.ropt.sel{background:#1e1a0f;border-color:#c9a84c;color:#f0d878}
+
+.info-box{background:#161610;border:1px solid rgba(201,168,76,.15);border-radius:7px;padding:12px 14px;margin-top:6px;font-size:12px;color:#9a9070;line-height:1.6;display:none}
+.info-box.show{display:block}
+
+.asset-row{
+  display:flex;align-items:center;gap:10px;padding:11px 14px;
+  background:#181818;border:1px solid #2e2e2e;border-radius:7px;
+  margin-bottom:7px;cursor:pointer;transition:all .15s;user-select:none
+}
+.asset-row:hover{border-color:#3a3a2a;background:#1e1e1e}
+.asset-row.sel{border-color:#c9a84c;background:#1e1a0f}
+.asset-check{width:17px;height:17px;border-radius:4px;border:1px solid #3a3a2a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:#111;transition:all .15s}
+.asset-row.sel .asset-check{background:#c9a84c;border-color:#c9a84c}
+.asset-name{flex:1;font-size:13px;color:#a8a098}
+.asset-row.sel .asset-name{color:#e8e0d0}
+.asset-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0}
+.asset-amount{width:145px;flex-shrink:0}
+.asset-amount select{width:100%;background:#111;border:1px solid #2a2a2a;border-radius:5px;padding:6px 8px;font-size:11px;color:#c9a84c;font-family:'DM Sans',sans-serif;outline:none}
+.asset-amount select:disabled{color:#333;border-color:#1e1e1e}
+
+.sub-panel{display:none;margin-top:8px}
+.sub-panel.show{display:block}
+.sub-inner{background:#161616;border:1px solid #242424;border-radius:7px;padding:16px}
+.sub-inner .field{margin-bottom:.85rem}
+.sub-inner .field:last-child{margin-bottom:0}
+
+.conf-box{background:#161410;border:1px solid rgba(201,168,76,.18);border-radius:9px;padding:1.5rem;margin:1.5rem 0}
+.conf-item{display:flex;gap:12px;margin-bottom:13px;font-size:13px;color:#b0a898;line-height:1.6}
+.conf-item:last-child{margin-bottom:0}
+.conf-lock{color:#c9a84c;font-size:15px;flex-shrink:0;margin-top:2px}
+
+.nav-row{display:flex;gap:10px;margin-top:1.75rem}
+.btn-back{background:transparent;border:1px solid #2e2e2e;border-radius:7px;padding:12px 22px;font-size:13px;color:#887860;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-back:hover{border-color:#3a3a2a;color:#b0a890}
+.btn-next{flex:1;background:#c9a84c;color:#111;border:none;border-radius:7px;padding:13px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:opacity .2s;letter-spacing:.03em}
+.btn-next:hover{opacity:.88}
+
+.step-bar{display:flex;align-items:center;gap:4px;margin:1.25rem 0 .5rem}
+.step-item{flex:1;height:3px;border-radius:2px;background:#1e1e1e;transition:background .3s}
+.step-item.done{background:#c9a84c55}
+.step-item.act{background:#c9a84c}
+.step-labels{display:flex;justify-content:space-between;margin-bottom:1rem}
+.step-lbl{font-size:10px;color:#555040;letter-spacing:.05em}
+.step-lbl.act{color:#c9a84c}
+
+.result-section{background:#171717;border:1px solid #252525;border-radius:9px;padding:1.25rem;margin-bottom:.85rem}
+.result-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#666050;margin-bottom:9px}
+.result-val{font-size:14px;color:#c8c0b0;line-height:1.65}
+.tag{display:inline-block;padding:4px 11px;border-radius:20px;font-size:11px;background:#1e1a0f;border:1px solid rgba(201,168,76,.28);color:#c9a84c;margin:2px}
+.profile-card{background:#161614;border-radius:12px;padding:2rem;margin:2rem 0;text-align:center;border:1px solid #2a2a1a}
+.profile-name{font-family:'Playfair Display',serif;font-size:34px;font-weight:700;margin-bottom:6px}
+.profile-desc{font-size:14px;color:#b0a890;line-height:1.7;max-width:480px;margin:0 auto 1.5rem}
+.profile-dist{background:#111;border-radius:7px;padding:12px 16px;font-size:13px;color:#c9a84c;font-weight:500}
+.success-box{background:#161610;border:1px solid rgba(201,168,76,.22);border-radius:9px;padding:1.5rem;margin-top:1rem}
+.spinner{display:none;text-align:center;padding:1rem}
+.spinner.show{display:block}
+.spin{width:24px;height:24px;border:2px solid #2a2a2a;border-top-color:#c9a84c;border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="progress-bar"><div class="progress-fill" id="prog" style="width:0%"></div></div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <p class="hero-sub">Martí Roca de Torres · Assessor Financer Independent</p>
+    <h1 class="hero-title">Fitxa de Client<br>Pre-Reunió</h1>
+    <p class="hero-desc">Omple aquest formulari abans de la nostra sessió. Ens permetrà aprofitar al màxim els 30 minuts i arribar amb una idea formada de la teva situació que ens ajudarà a construir junts la proposta.</p>
+  </div>
+
+  <div class="step-bar" id="stepbar"></div>
+  <div class="step-labels">
+    <span class="step-lbl" id="sl0">Inici</span>
+    <span class="step-lbl" id="sl2">Ingressos</span>
+    <span class="step-lbl" id="sl3">Patrimoni</span>
+    <span class="step-lbl" id="sl5">Objectius</span>
+    <span class="step-lbl" id="sl6">Risc</span>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S0 · CONFIDENCIALITAT
+  ══════════════════════════════════ -->
+  <div class="screen active" id="s0">
+    <div class="block-label"><div class="block-num">!</div><span class="block-title">Confidencialitat i Privacitat</span></div>
+    <div class="conf-box">
+      <div class="conf-item"><span class="conf-lock">🔒</span><span>Totes les dades que comparteixes en aquest formulari són estrictament confidencials i no es compartiran amb cap tercer sota cap concepte.</span></div>
+      <div class="conf-item"><span class="conf-lock">🔒</span><span>La informació s'utilitza exclusivament per preparar la sessió d'assessorament i elaborar la teva fitxa personal.</span></div>
+      <div class="conf-item"><span class="conf-lock">🔒</span><span>Les dades no s'emmagatzemen en cap base de dades externa ni plataforma de tercers.</span></div>
+      <div class="conf-item"><span class="conf-lock">🔒</span><span>Com a assessor independent, estic subjecte al deure de confidencialitat professional en totes les meves relacions amb clients.</span></div>
+    </div>
+    <p style="font-size:11px;color:#4a4a3a;line-height:1.7;margin-bottom:1.75rem">En continuar, acceptes que Martí Roca de Torres tracti les dades facilitades amb la finalitat exclusiva de prestar el servei d'assessorament financer personal sol·licitat.</p>
+    <button class="btn-next" style="width:100%" onclick="go(1)">Accepto i continuo →</button>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S1 · QUI ETS
+  ══════════════════════════════════ -->
+  <div class="screen" id="s1">
+    <div class="block-label"><div class="block-num">1</div><span class="block-title">Qui ets</span></div>
+
+    <div class="field"><label>Nom i cognoms *</label><input type="text" id="nom" placeholder="Ex: Maria Garcia Puig"></div>
+    <div class="field"><label>Email de contacte *</label><input type="email" id="email" placeholder="exemple@email.com"></div>
+    <div class="field"><label>Telèfon</label><input type="text" id="telefon" placeholder="Ex: 655 927 969"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>Edat</label>
+        <select id="edat"><option value="">Selecciona</option><option>18-25 anys</option><option>26-35 anys</option><option>36-45 anys</option><option>46-55 anys</option><option>56-65 anys</option><option>+65 anys</option></select>
+      </div>
+      <div class="field"><label>Situació laboral</label>
+        <select id="laboral"><option value="">Selecciona</option><option>Assalariat/da</option><option>Autònom/a</option><option>Empresari/a</option><option>Múltiples fonts</option><option>Jubilat/da</option><option>Sense ingressos regulars</option></select>
+      </div>
+    </div>
+
+    <div class="field"><label>Tens parella?</label>
+      <div class="radio-group col3">
+        <div class="ropt" onclick="sel(this,'parella')">No</div>
+        <div class="ropt" onclick="sel(this,'parella')">Sí, sense ingressos</div>
+        <div class="ropt" onclick="sel(this,'parella')">Sí, amb ingressos</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Fills a càrrec</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'fills')">Cap</div>
+        <div class="ropt" onclick="sel(this,'fills')">1-2 menors d'edat</div>
+        <div class="ropt" onclick="sel(this,'fills')">1-2 majors d'edat</div>
+        <div class="ropt" onclick="sel(this,'fills')">3 o més</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Tens persones grans o dependents al teu càrrec?</label>
+      <div class="radio-group col3">
+        <div class="ropt" onclick="sel(this,'dependents')">No</div>
+        <div class="ropt" onclick="sel(this,'dependents')">Possible en el futur</div>
+        <div class="ropt" onclick="sel(this,'dependents')">Sí, ara mateix</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Tens assegurança de vida o invalidesa?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'asseguranca')">No tinc cap</div>
+        <div class="ropt" onclick="sel(this,'asseguranca')">La de l'empresa</div>
+        <div class="ropt" onclick="sel(this,'asseguranca')">Sí, contractada per mi</div>
+        <div class="ropt" onclick="sel(this,'asseguranca')">No sé si en tinc</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(0)">← Enrere</button>
+      <button class="btn-next" onclick="go(2)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S2 · COM GUANYES I GASTES
+  ══════════════════════════════════ -->
+  <div class="screen" id="s2">
+    <div class="block-label"><div class="block-num">2</div><span class="block-title">Com guanyes i gastes</span></div>
+
+    <div class="field"><label>Ingressos mensuals nets (personals)</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'ing')">Menys de 1.500€</div>
+        <div class="ropt" onclick="sel(this,'ing')">1.500 – 3.000€</div>
+        <div class="ropt" onclick="sel(this,'ing')">3.000 – 5.000€</div>
+        <div class="ropt" onclick="sel(this,'ing')">+5.000€</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Despeses mensuals fixes aproximades (lloguer/hipoteca, subministraments, etc.)</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'desp')">Menys de 1.000€</div>
+        <div class="ropt" onclick="sel(this,'desp')">1.000 – 2.000€</div>
+        <div class="ropt" onclick="sel(this,'desp')">2.000 – 3.500€</div>
+        <div class="ropt" onclick="sel(this,'desp')">+3.500€</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Quant pots estalviar cada mes aproximadament?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'estalvi')">Gairebé res</div>
+        <div class="ropt" onclick="sel(this,'estalvi')">Fins a 300€</div>
+        <div class="ropt" onclick="sel(this,'estalvi')">300 – 800€</div>
+        <div class="ropt" onclick="sel(this,'estalvi')">+800€</div>
+      </div>
+    </div>
+
+    <div class="field"><label>D'on ve principalment el que has estalviat o acumulat fins ara?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'origen')">Estalvi de la feina / nòmina</div>
+        <div class="ropt" onclick="sel(this,'origen')">Herència o donació familiar</div>
+        <div class="ropt" onclick="sel(this,'origen')">Venda d'immoble o negoci</div>
+        <div class="ropt" onclick="sel(this,'origen')">Combinació de diverses fonts</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Estimes que cobràs una pensió pública decent quan et jubilis?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'pensio')">Sí, he cotitzat molt</div>
+        <div class="ropt" onclick="sel(this,'pensio')">Parcialment</div>
+        <div class="ropt" onclick="sel(this,'pensio')">Poc, sóc autònom/a</div>
+        <div class="ropt" onclick="sel(this,'pensio')">No hi comptem</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(1)">← Enrere</button>
+      <button class="btn-next" onclick="go(3)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S3 · ON TENS ELS DINERS
+  ══════════════════════════════════ -->
+  <div class="screen" id="s3">
+    <div class="block-label"><div class="block-num">3</div><span class="block-title">On tens els diners ara</span></div>
+    <p style="font-size:12px;color:#887860;margin-bottom:1rem;line-height:1.65">Marca on tens diners i selecciona l'import aproximat. Estrictament confidencial.</p>
+
+    <div id="assets-list"></div>
+
+    <div class="field" style="margin-top:1.25rem"><label>Treballes amb algun assessor o gestora en l'actualitat?</label>
+      <div class="radio-group col3">
+        <div class="ropt" onclick="sel(this,'assessor')">No</div>
+        <div class="ropt" onclick="sel(this,'assessor')">Sí, banc / gestora</div>
+        <div class="ropt" onclick="sel(this,'assessor')">Sí, assessor independent</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(2)">← Enrere</button>
+      <button class="btn-next" onclick="go(4)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S4 · DEUTES I COMPROMISOS
+  ══════════════════════════════════ -->
+  <div class="screen" id="s4">
+    <div class="block-label"><div class="block-num">4</div><span class="block-title">Deutes i compromisos</span></div>
+
+    <div class="field"><label>Tens habitatge en propietat?</label>
+      <div class="radio-group col3">
+        <div class="ropt" onclick="togImmo(this,'immoP','No')">No</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','Sí, sense hipoteca')">Sí, sense hipoteca</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','Sí, amb hipoteca')">Sí, amb hipoteca</div>
+      </div>
+    </div>
+    <div class="sub-panel" id="sub-immoP">
+      <div class="sub-inner">
+        <div class="field"><label>Valor aproximat de l'habitatge</label>
+          <select id="val-p"><option value="">Selecciona</option><option>Menys de 100.000€</option><option>100.000 – 200.000€</option><option>200.000 – 350.000€</option><option>350.000 – 500.000€</option><option>+500.000€</option></select>
+        </div>
+        <div id="hip-fields" style="display:none">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field"><label>Deute pendent hipoteca</label>
+              <select id="hip-pendent"><option value="">Selecciona</option><option>Menys de 50.000€</option><option>50.000 – 100.000€</option><option>100.000 – 200.000€</option><option>+200.000€</option></select>
+            </div>
+            <div class="field"><label>Tipus d'interès</label>
+              <select id="hip-tipus"><option value="">Selecciona</option><option>Fix (fins a 2%)</option><option>Fix (2-3%)</option><option>Fix (+3%)</option><option>Variable (Euribor+spread)</option><option>Mixt</option></select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:.5rem"><label>Tens altres immobles? (inversió, herència, local...)</label>
+      <div class="radio-group col3">
+        <div class="ropt" onclick="togImmo(this,'immoA','No')">No</div>
+        <div class="ropt" onclick="togImmo(this,'immoA','Sí, 1 immoble')">Sí, 1 immoble</div>
+        <div class="ropt" onclick="togImmo(this,'immoA','Sí, 2 o més')">Sí, 2 o més</div>
+      </div>
+    </div>
+    <div class="sub-panel" id="sub-immoA">
+      <div class="sub-inner">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field"><label>Valor aproximat total</label>
+            <select id="val-a"><option value="">Selecciona</option><option>Menys de 100.000€</option><option>100.000 – 250.000€</option><option>250.000 – 500.000€</option><option>+500.000€</option></select>
+          </div>
+          <div class="field"><label>Genera lloguer?</label>
+            <select id="lloguer"><option value="">Selecciona</option><option>No</option><option>Sí, < 500€/mes</option><option>Sí, 500–1.500€/mes</option><option>Sí, +1.500€/mes</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field" style="margin-top:.5rem"><label>Tens altres deutes a part de la hipoteca?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'deutes')">No, cap deute</div>
+        <div class="ropt" onclick="sel(this,'deutes')">Crèdit cotxe / consum</div>
+        <div class="ropt" onclick="sel(this,'deutes')">Targetes de crèdit</div>
+        <div class="ropt" onclick="sel(this,'deutes')">Diversos / significatius</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Despeses grans previstes en els pròxims 5 anys</label>
+      <p style="font-size:11px;color:#666050;margin-bottom:8px">Pots seleccionar diverses opcions</p>
+      <div id="despeses-list"></div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(3)">← Enrere</button>
+      <button class="btn-next" onclick="go(5)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S5 · PER QUÈ VOLS INVERTIR
+  ══════════════════════════════════ -->
+  <div class="screen" id="s5">
+    <div class="block-label"><div class="block-num">5</div><span class="block-title">Per què vols invertir</span></div>
+
+    <div class="field"><label>Quin és el teu objectiu principal?</label>
+      <div class="radio-group col1">
+        <div class="ropt" onclick="sel(this,'objectiu')">Tenir un coixí per si perdo la feina o passa alguna cosa</div>
+        <div class="ropt" onclick="sel(this,'objectiu')">Complementar la pensió i viure bé quan em jubili</div>
+        <div class="ropt" onclick="sel(this,'objectiu')">Generar rendes periòdiques sense tocar el capital</div>
+        <div class="ropt" onclick="sel(this,'objectiu')">Fer créixer el patrimoni al màxim possible a llarg termini</div>
+        <div class="ropt" onclick="sel(this,'objectiu')">Assolir la llibertat financera / deixar de dependre d'una nòmina</div>
+        <div class="ropt" onclick="sel(this,'objectiu')">Deixar patrimoni als fills o hereus</div>
+        <div class="ropt" onclick="selAltres(this,'objectiu')">Altres — explica'm</div>
+      </div>
+      <div id="objectiu-altres-box" style="display:none;margin-top:8px">
+        <textarea id="objectiu-altres" placeholder="Explica'm el teu objectiu amb les teves paraules..." style="width:100%;background:#181818;border:1px solid #2e2e2e;border-radius:7px;padding:11px 14px;font-size:14px;color:#e8e0d0;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:80px;line-height:1.6"></textarea>
+      </div>
+    </div>
+
+    <div class="field"><label>Quan necessitaràs accedir als diners invertits?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="selQ(this,'q_hor',1)">En menys d'1 any</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',2)">Entre 1 i 3 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',3)">Entre 3 i 10 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',4)">En més de 10 anys</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Tens algú de confiança amb qui parles de finances?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'confiance')">No, és un tema privat</div>
+        <div class="ropt" onclick="sel(this,'confiance')">Sí, família / parella</div>
+        <div class="ropt" onclick="sel(this,'confiance')">Sí, amics del sector</div>
+        <div class="ropt" onclick="sel(this,'confiance')">Sí, assessor / gestor</div>
+      </div>
+    </div>
+
+    <div class="field"><label>Segueixes algun referent o creador de contingut financer?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="sel(this,'referent')">No, no en segueixo cap</div>
+        <div class="ropt" onclick="sel(this,'referent')">Algun, de forma ocasional</div>
+        <div class="ropt" onclick="sel(this,'referent')">Sí, segueixo diversos</div>
+        <div class="ropt" onclick="sel(this,'referent')">Sí, i aplico el que aprenc</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(4)">← Enrere</button>
+      <button class="btn-next" onclick="go(6)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S6 · COM ETS AMB ELS DINERS
+  ══════════════════════════════════ -->
+  <div class="screen" id="s6">
+    <div class="block-label"><div class="block-num">6</div><span class="block-title">Com ets amb els diners</span></div>
+
+    <div class="field"><label>1 · Tens fons d'emergència separat de la inversió?</label>
+      <div class="radio-group col1">
+        <div class="ropt" onclick="selQ(this,'q1',1)">No, tot ho tinc junt</div>
+        <div class="ropt" onclick="selQ(this,'q1',2)">Sí, però potser insuficient</div>
+        <div class="ropt" onclick="selQ(this,'q1',3)">Sí, 3-6 mesos de despeses</div>
+        <div class="ropt" onclick="selQ(this,'q1',4)">Sí, més de 6 mesos</div>
+        <div class="ropt" onclick="selQ(this,'q1',0)" id="ropt-nosap">No sé exactament què és el fons d'emergència</div>
+      </div>
+      <div class="info-box" id="info-emergencia">
+        <strong style="color:#c9a84c">Fons d'emergència:</strong> és un coixí de liquiditat (diners fàcilment accessibles) equivalent a 3-6 mesos de les teves despeses fixes. Serveix per cobrir imprevistos sense haver de tocar les inversions ni endeutar-te.
+      </div>
+    </div>
+
+    <div class="field"><label>2 · Has perdut diners invertint alguna vegada?</label>
+      <div class="radio-group col1">
+        <div class="ropt" onclick="selQ(this,'q3',1)">Sí, i em va afectar molt. Vaig sortir ràpid</div>
+        <div class="ropt" onclick="selQ(this,'q3',2)">Sí, però vaig aguantar i recuperar</div>
+        <div class="ropt" onclick="selQ(this,'q3',3)">No, mai he tingut pèrdues significatives</div>
+        <div class="ropt" onclick="selQ(this,'q3',4)">No he invertit mai en mercats</div>
+      </div>
+    </div>
+
+    <div class="field"><label>3 · Si la teva cartera cau un 20% en un mes, què faries?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="selQ(this,'q2',1)">Venc tot, surto del mercat</div>
+        <div class="ropt" onclick="selQ(this,'q2',2)">Venc una part, redueixo risc</div>
+        <div class="ropt" onclick="selQ(this,'q2',3)">No faig res, espero</div>
+        <div class="ropt" onclick="selQ(this,'q2',4)">Compro més, és oportunitat</div>
+      </div>
+    </div>
+
+    <div class="field"><label>4 · Quina pèrdua màxima creus que pots tolerar emocionalment?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="selQ(this,'q4',1)">Menys del 5%</div>
+        <div class="ropt" onclick="selQ(this,'q4',2)">5% – 15%</div>
+        <div class="ropt" onclick="selQ(this,'q4',3)">15% – 30%</div>
+        <div class="ropt" onclick="selQ(this,'q4',4)">Més del 30%</div>
+      </div>
+    </div>
+
+    <div class="field"><label>5 · Quin binomi rendiment/risc prefereixes?</label>
+      <div class="radio-group col1">
+        <div class="ropt" onclick="selQ(this,'q5',1)">+2% anual · sense risc · caigudes mínimes</div>
+        <div class="ropt" onclick="selQ(this,'q5',2)">+5% anual · caigudes màx. -20%</div>
+        <div class="ropt" onclick="selQ(this,'q5',3)">+8% anual · caigudes màx. -40%</div>
+        <div class="ropt" onclick="selQ(this,'q5',4)">+12% o més · caigudes del -60% o més possibles</div>
+      </div>
+    </div>
+
+    <div class="field"><label>6 · Experiència inversora</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="selQ(this,'q6',1)">Mai he invertit</div>
+        <div class="ropt" onclick="selQ(this,'q6',2)">Menys de 2 anys</div>
+        <div class="ropt" onclick="selQ(this,'q6',3)">Entre 2 i 5 anys</div>
+        <div class="ropt" onclick="selQ(this,'q6',4)">Més de 5 anys</div>
+      </div>
+    </div>
+
+    <div class="field"><label>7 · Si les coses no van com esperaves, com reacciones?</label>
+      <div class="radio-group">
+        <div class="ropt" onclick="selQ(this,'q7',1)">Malament, em costa molt acceptar les pèrdues</div>
+        <div class="ropt" onclick="selQ(this,'q7',2)">Em preocupo, però sé esperar</div>
+        <div class="ropt" onclick="selQ(this,'q7',3)">Ho accepto, forma part del procés</div>
+        <div class="ropt" onclick="selQ(this,'q7',4)">Ho veig com una oportunitat i actuo en fred</div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(5)">← Enrere</button>
+      <button class="btn-next" onclick="go(7)">Continua →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S7 · COMENTARI FINAL
+  ══════════════════════════════════ -->
+  <div class="screen" id="s7">
+    <div class="block-label"><div class="block-num">7</div><span class="block-title">Últimes preguntes</span></div>
+
+    <div class="field"><label>En 2-3 línies: explica'm la teva situació i què esperes de la nostra sessió</label>
+      <textarea id="comentari" placeholder="Ex: Tinc 38 anys, faig d'autònom i tinc uns 80.000€ al banc i un pis que lloga. Vull saber si ho estic fent bé i com organitzar-me millor per tenir llibertat financera als 55..."></textarea>
+    </div>
+
+    <div class="field"><label>Hi ha alguna cosa concreta que et preocupi o vulguis tractar sí o sí a la reunió?</label>
+      <textarea id="preocupacio" placeholder="Ex: La inflació se'm menja els estalvis del banc. No sé si el meu pla de pensions val la pena. Vull saber si hauria de canviar d'assessor..."></textarea>
+    </div>
+
+    <div class="spinner" id="spinner"><div class="spin"></div><p style="font-size:12px;color:#887860;margin-top:10px">Enviant fitxa...</p></div>
+
+    <div class="nav-row">
+      <button class="btn-back" onclick="go(6)">← Enrere</button>
+      <button class="btn-next" id="btn-send" onclick="enviar()">Enviar fitxa →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       S8 · RESULTAT
+  ══════════════════════════════════ -->
+  <div class="screen" id="s8">
+    <div id="result-content"></div>
+  </div>
+
+</div>
+
+<script>
+const ASSETS = [
+  {icon:'💵', name:'Compte corrent / liquiditat',           id:'liq'},
+  {icon:'🏦', name:'Dipòsits a termini',                    id:'dep'},
+  {icon:'📊', name:'Fons monetaris / renda fixa',           id:'mon'},
+  {icon:'📈', name:'Cartera indexada (ETFs / fons indexats)',id:'etf'},
+  {icon:'📁', name:'Fons d\'inversió actius',               id:'fons'},
+  {icon:'🏢', name:'Accions individuals',                   id:'acc'},
+  {icon:'🧓', name:'Pla de pensions / EPSV',               id:'pens'},
+  {icon:'📋', name:'Assegurança estalvi (PIAS / Unit Linked)',id:'asseg'},
+  {icon:'🤝', name:'Crowdlending / inversió alternativa',   id:'crowd'},
+  {icon:'🥇', name:'Or / metalls preciosos',               id:'or'},
+  {icon:'₿',  name:'Criptoactius',                         id:'cri'},
+  {icon:'🏠', name:'Immobles (habitatge, pisos, locals...)',id:'immo'},
+  {icon:'🏗️', name:'Participació en negoci propi',         id:'neg'},
+  {icon:'🔮', name:'Altres',                               id:'alt'},
+];
+const AMT = ['< 5.000€','5.000–20.000€','20.000–50.000€','50.000–100.000€','100.000–250.000€','> 250.000€'];
+
+const DESPESES_OPTS = [
+  'Cap despesa gran prevista',
+  'Cotxe nou',
+  'Casament',
+  'Fills / ampliació família',
+  'Entrada per habitatge',
+  'Reformes / obra',
+  'Muntar un negoci',
+  'Estudis propis o dels fills',
+  'Viatge important',
+  'Altra despesa +20.000€',
+];
+
+const PROFILES = [
+  {min:0, max:11, name:'Conservador', col:'#5b9bd5',
+   desc:'La preservació del capital és la teva prioritat. Et sents còmode amb productes de baix risc: dipòsits, bons i fons monetaris.',
+   dist:'Renda fixa 70% · Fons monetaris 20% · Renda variable 10%'},
+  {min:12,max:17, name:'Moderat', col:'#c9a84c',
+   desc:'Busques un equilibri entre seguretat i creixement. Pots tolerar fluctuacions menors amb una cartera diversificada.',
+   dist:'Renda fixa 50% · Renda variable 35% · Alternatius 15%'},
+  {min:18,max:22, name:'Equilibrat', col:'#1D9E75',
+   desc:'Acceptes volatilitat moderada a canvi de creixement real. Tens horitzó suficient per superar cicles baixistes.',
+   dist:'Renda variable 60% · Renda fixa 25% · Alternatius / Or 15%'},
+  {min:23,max:26, name:'Dinàmic', col:'#E07B39',
+   desc:'El creixement a llarg termini és la teva prioritat. Acceptes caigudes significatives amb convicció inversora.',
+   dist:'Renda variable 75% · Alternatius / Or 15% · Renda fixa 10%'},
+  {min:27,max:28, name:'Agressiu', col:'#E24B4A',
+   desc:'Màxim potencial de creixement. Acceptes volatilitat molt alta amb coneixement avançat i horitzó molt llarg.',
+   dist:'Renda variable 90% · Criptoactius / Alternatius 10%'},
+];
+
+const radio = {};
+const qVals = {};
+let despesesSel = [];
+
+function renderAssets(){
+  let h = '';
+  ASSETS.forEach(a => {
+    h += `<div class="asset-row" id="ar-${a.id}" onclick="togAsset('${a.id}')">
+      <div class="asset-check" id="chk-${a.id}"></div>
+      <span class="asset-icon">${a.icon}</span>
+      <span class="asset-name">${a.name}</span>
+      <div class="asset-amount" onclick="event.stopPropagation()">
+        <select id="amt-${a.id}" disabled>
+          <option value="">Import</option>
+          ${AMT.map(o=>`<option value="${o}">${o}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  });
+  document.getElementById('assets-list').innerHTML = h;
+}
+
+function renderDespeses(){
+  let h = '';
+  DESPESES_OPTS.forEach((d,i) => {
+    h += `<div class="asset-row" id="dp-${i}" onclick="togDespesa(${i})" style="margin-bottom:6px">
+      <div class="asset-check" id="dpchk-${i}"></div>
+      <span class="asset-name" style="text-align:left">${d}</span>
+    </div>`;
+  });
+  document.getElementById('despeses-list').innerHTML = h;
+}
+
+function togAsset(id){
+  const row = document.getElementById('ar-'+id);
+  const on  = row.classList.toggle('sel');
+  const chk = document.getElementById('chk-'+id);
+  const amt = document.getElementById('amt-'+id);
+  chk.textContent = on ? '✓' : '';
+  Object.assign(chk.style, on
+    ? {background:'#c9a84c',borderColor:'#c9a84c',color:'#111'}
+    : {background:'',borderColor:'',color:''});
+  amt.disabled = !on;
+  if(!on) amt.value = '';
+}
+
+function togDespesa(i){
+  const row = document.getElementById('dp-'+i);
+  const chk = document.getElementById('dpchk-'+i);
+  const on  = row.classList.toggle('sel');
+  chk.textContent = on ? '✓' : '';
+  Object.assign(chk.style, on
+    ? {background:'#c9a84c',borderColor:'#c9a84c',color:'#111'}
+    : {background:'',borderColor:'',color:''});
+  if(on) { if(!despesesSel.includes(DESPESES_OPTS[i])) despesesSel.push(DESPESES_OPTS[i]); }
+  else   { despesesSel = despesesSel.filter(x=>x!==DESPESES_OPTS[i]); }
+}
+
+function sel(el, group){
+  document.querySelectorAll(`[onclick*="sel(this,'${group}')"]`).forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  radio[group] = el.textContent.trim();
+  if(group==='objectiu') document.getElementById('objectiu-altres-box').style.display='none';
+}
+
+function selAltres(el, group){
+  document.querySelectorAll(`[onclick*="sel(this,'${group}')"], [onclick*="selAltres(this,'${group}')"]`).forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  radio[group] = 'Altres';
+  document.getElementById(group+'-altres-box').style.display='block';
+}
+
+function selQ(el, q, pts){
+  document.querySelectorAll(`[onclick*="selQ(this,'${q}'"]`).forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  qVals[q] = pts;
+  if(q==='q1' && pts===0){
+    document.getElementById('info-emergencia').classList.add('show');
+  } else if(q==='q1'){
+    document.getElementById('info-emergencia').classList.remove('show');
+  }
+}
+
+function togImmo(el, group, val){
+  document.querySelectorAll(`[onclick*="togImmo(this,'${group}'"]`).forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  radio[group] = val;
+  document.getElementById('sub-'+group).classList.toggle('show', val !== 'No');
+  if(group === 'immoP'){
+    document.getElementById('hip-fields').style.display = val==='Sí, amb hipoteca' ? 'block' : 'none';
+  }
+}
+
+function updateStepBar(n){
+  const total = 9;
+  let h = '';
+  for(let i=0;i<total;i++){
+    const cls = i < n ? 'done' : (i===n ? 'act' : '');
+    h += `<div class="step-item ${cls}"></div>`;
+  }
+  document.getElementById('stepbar').innerHTML = h;
+  const lblMap = {0:'sl0',2:'sl2',3:'sl3',5:'sl5',6:'sl6'};
+  Object.values(lblMap).forEach(id=>document.getElementById(id).classList.remove('act'));
+  if(lblMap[n]) document.getElementById(lblMap[n]).classList.add('act');
+}
+
+function go(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+n).classList.add('active');
+  const pct = Math.round(n/8*100);
+  document.getElementById('prog').style.width = pct + '%';
+  updateStepBar(n);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function collectData(){
+  const qKeys = ['q1','q2','q3','q4','q5','q6','q7','q_hor'];
+  const pts = qKeys.filter(k=>k!=='q_hor').reduce((s,k)=>s+(qVals[k]||0), 0);
+  const p = PROFILES.find(x=>pts>=x.min&&pts<=x.max) || PROFILES[4];
+
+  const selAssets = ASSETS
+    .filter(a=>document.getElementById('ar-'+a.id)?.classList.contains('sel'))
+    .map(a=>{
+      const amt = document.getElementById('amt-'+a.id)?.value||'';
+      return `${a.name}${amt?' · '+amt:''}`;
+    }).join(' | ');
+
+  return {
+    nom:        document.getElementById('nom')?.value||'',
+    email:      document.getElementById('email')?.value||'',
+    telefon:    document.getElementById('telefon')?.value||'—',
+    edat:       document.getElementById('edat')?.value||'—',
+    laboral:    document.getElementById('laboral')?.value||'—',
+    parella:    radio['parella']||'—',
+    fills:      radio['fills']||'—',
+    dependents: radio['dependents']||'—',
+    asseguranca:radio['asseguranca']||'—',
+    ing:        radio['ing']||'—',
+    desp:       radio['desp']||'—',
+    estalvi:    radio['estalvi']||'—',
+    origen:     radio['origen']||'—',
+    pensio:     radio['pensio']||'—',
+    assets:     selAssets||'—',
+    assessor:   radio['assessor']||'—',
+    immoP:      radio['immoP']||'No',
+    valP:       document.getElementById('val-p')?.value||'—',
+    hipPendent: document.getElementById('hip-pendent')?.value||'—',
+    hipTipus:   document.getElementById('hip-tipus')?.value||'—',
+    immoA:      radio['immoA']||'No',
+    valA:       document.getElementById('val-a')?.value||'—',
+    lloguer:    document.getElementById('lloguer')?.value||'—',
+    deutes:     radio['deutes']||'—',
+    despeses5a: despesesSel.join(', ')||'Cap',
+    objectiu:   radio['objectiu']==='Altres' ? ('Altres: '+(document.getElementById('objectiu-altres')?.value||'')) : (radio['objectiu']||'—'),
+    horizonte:  qVals['q_hor']===1?'< 1 any':qVals['q_hor']===2?'1-3 anys':qVals['q_hor']===3?'3-10 anys':'+10 anys',
+    confiance:  radio['confiance']||'—',
+    referent:   radio['referent']||'—',
+    comentari:  document.getElementById('comentari')?.value||'—',
+    preocupacio:document.getElementById('preocupacio')?.value||'—',
+    pts, perfil: p.name,
+    data: new Date().toLocaleDateString('ca-ES'),
+  };
+}
+
+async function enviar(){
+  const btn  = document.getElementById('btn-send');
+  const spin = document.getElementById('spinner');
+  btn.disabled = true;
+  spin.classList.add('show');
+  const d = collectData();
+
+  try {
+    emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
+    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+      nom:d.nom, email:d.email, telefon:d.telefon, edat:d.edat, laboral:d.laboral,
+      jubilacio:d.jubilacio, parella:d.parella, fills:d.fills,
+      dependents:d.dependents, asseguranca:d.asseguranca,
+      ing:d.ing, desp:d.desp, estalvi:d.estalvi, origen:d.origen, pensio:d.pensio,
+      assets:d.assets, assessor:d.assessor,
+      immoP:d.immoP, valP:d.valP, hipPendent:d.hipPendent, hipTipus:d.hipTipus,
+      immoA:d.immoA, valA:d.valA, lloguer:d.lloguer,
+      deutes:d.deutes, despeses5a:d.despeses5a,
+      objectiu:d.objectiu, horizonte:d.horizonte, patfutur:d.patfutur,
+      confiance:d.confiance, referent:d.referent,
+      comentari:d.comentari, preocupacio:d.preocupacio,
+      perfil:d.perfil, pts:d.pts, data:d.data,
+    });
+  } catch(e){ console.warn('EmailJS:', e); }
+
+  try {
+    await fetch(CONFIG.SHEETS_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(d),
+    });
+  } catch(e){ console.warn('Sheets:', e); }
+
+  spin.classList.remove('show');
+  showResult(d);
+}
+
+function showResult(d){
+  const p = PROFILES.find(x=>d.pts>=x.min&&d.pts<=x.max)||PROFILES[4];
+  const firstName = d.nom.split(' ')[0]||'Client';
+
+  document.getElementById('result-content').innerHTML = `
+    <div style="margin:2.5rem 0 1rem">
+      <p style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#666050;margin-bottom:10px">El teu perfil inversor</p>
+      <div class="profile-card" style="border-color:${p.col}33">
+        <p style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:${p.col};margin-bottom:10px">Perfil</p>
+        <p class="profile-name" style="color:${p.col}">${p.name}</p>
+        <p style="font-size:12px;color:#555040;margin-bottom:1.25rem">${d.pts} punts</p>
+        <p class="profile-desc">${p.desc}</p>
+        <div class="profile-dist" style="color:${p.col}">${p.dist}</div>
+      </div>
+    </div>
+
+    <div class="result-section">
+      <p class="result-label">Dades personals</p>
+      <p class="result-val">${d.edat} · ${d.laboral}</p>
+      <p class="result-val" style="margin-top:4px">Jubilació desitjada: ${d.jubilacio}</p>
+      <p class="result-val" style="margin-top:4px">Parella: ${d.parella} · Fills: ${d.fills}</p>
+    </div>
+
+    <div class="result-section">
+      <p class="result-label">Objectiu principal</p>
+      <p class="result-val">${d.objectiu}</p>
+      <p class="result-val" style="margin-top:4px">Horitzó: ${d.horizonte} · Patrimoni futur desitjat: ${d.patfutur}</p>
+    </div>
+
+    <div class="result-section">
+      <p class="result-label">Despeses previstes 5 anys</p>
+      <p class="result-val">${d.despeses5a}</p>
+    </div>
+
+    <div class="success-box">
+      <p style="font-size:14px;color:#c9a84c;font-weight:600;margin-bottom:8px">✓ Fitxa enviada correctament</p>
+      <p style="font-size:13px;color:#9a9080;line-height:1.7">Gràcies, <strong style="color:#d8d0c0">${firstName}</strong>. He rebut la teva fitxa i estaré preparat per a la nostra sessió.<br><br>
+      Analitzarem el teu perfil <strong style="color:${p.col}">${p.name}</strong> i construirem una estratègia adaptada a la teva situació real.</p>
+    </div>
+
+    <div style="margin-top:1.5rem">
+      <p style="font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#888070;margin-bottom:1rem">Quin és el teu següent pas?</p>
+
+      <a href="https://calendly.com/martiniroca/30min" target="_blank" style="text-decoration:none;display:block;background:#1e1a0f;border:1px solid #c9a84c55;border-radius:9px;padding:1.25rem;margin-bottom:.75rem;transition:border-color .2s">
+        <p style="font-size:13px;font-weight:700;color:#c9a84c;margin-bottom:4px">Reserva una sessió gratuïta de 30 min →</p>
+        <p style="font-size:12px;color:#888070;line-height:1.5">Videotrucada sense compromís. T'explico com puc ajudar-te i resolem dubtes.</p>
+      </a>
+
+      <a href="https://calendly.com/martiniroca/sessio-assessorament-69-h" target="_blank" style="text-decoration:none;display:block;background:#181818;border:1px solid #2e2e2e;border-radius:9px;padding:1.25rem;margin-bottom:.75rem;transition:border-color .2s">
+        <p style="font-size:13px;font-weight:700;color:#f0e8d8;margin-bottom:4px">Reserva una sessió d'assessorament personal — 69€/h →</p>
+        <p style="font-size:12px;color:#888070;line-height:1.5">Sessió individual a fons. Anàlisi de la teva situació i proposta personalitzada.</p>
+      </a>
+
+      <div style="background:#181818;border:1px solid #2e2e2e;border-radius:9px;padding:1.25rem">
+        <p style="font-size:13px;font-weight:500;color:#888070;margin-bottom:4px;cursor:pointer" onclick="document.getElementById('noencaixa-form').style.display=document.getElementById('noencaixa-form').style.display==='none'?'block':'none'">De moment cap de les dues opcions encaixa ↓</p>
+        <p style="font-size:12px;color:#555040">Explica'm la teva situació i et responc personalment.</p>
+        <div id="noencaixa-form" style="display:none;margin-top:12px">
+          <textarea id="msg-noencaixa" placeholder="Ex: M'interessa però primer vull pensar-m'ho. Podria contactar-te en unes setmanes?" style="width:100%;background:#111;border:1px solid #2e2e2e;border-radius:7px;padding:11px 14px;font-size:13px;color:#e8e0d0;font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:80px;line-height:1.6;margin-bottom:10px"></textarea>
+          <button onclick="enviarNoEncaixa('${d.nom}','${d.email}','${d.perfil}')" style="background:#c9a84c;color:#111;border:none;border-radius:7px;padding:11px 24px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer">Enviar missatge →</button>
+          <div id="msg-confirmat" style="display:none;margin-top:10px;font-size:13px;color:#1D9E75">✓ Missatge enviat! Et responc aviat.</div>
+        </div>
+      </div>
+    </div>`;
+  go(8);
+}
+
+async function enviarNoEncaixa(nom, email, perfil){
+  const msg = document.getElementById('msg-noencaixa')?.value;
+  if(!msg) return;
+  try {
+    emailjs.init(CONFIG.EMAILJS_PUBLIC_KEY);
+    await emailjs.send(CONFIG.EMAILJS_SERVICE_ID, CONFIG.EMAILJS_TEMPLATE_ID, {
+      nom, email, perfil,
+      comentari: '[NO ENCAIXA] ' + msg,
+      data: new Date().toLocaleDateString('ca-ES'),
+      // Camps buits per compatibilitat amb la plantilla
+      edat:'—',laboral:'—',ing:'—',desp:'—',estalvi:'—',origen:'—',pensio:'—',
+      assets:'—',assessor:'—',immoP:'—',valP:'—',hipPendent:'—',hipTipus:'—',
+      immoA:'—',valA:'—',lloguer:'—',deutes:'—',despeses5a:'—',
+      objectiu:'—',horizonte:'—',referent:'—',preocupacio:'—',pts:'—',
+    });
+  } catch(e){ console.warn(e); }
+  document.getElementById('msg-confirmat').style.display='block';
+  document.getElementById('msg-noencaixa').disabled=true;
+}
+
+renderAssets();
+renderDespeses();
+updateStepBar(0);
+</script>
+</body>
+</html>
