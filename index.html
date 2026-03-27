@@ -488,6 +488,7 @@ input[type="range"]::-moz-range-thumb {
   display: inline-block;
 }
 @keyframes spin { to { transform: rotate(360deg) } }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-6px)} 40%,80%{transform:translateX(6px)} }
 
 .footer-note {
   text-align: center; font-size: 12px;
@@ -606,14 +607,6 @@ input[type="range"]::-moz-range-thumb {
       </div>
     </div>
 
-    <div class="field">
-      <label>Tens persones grans o dependents al teu càrrec?</label>
-      <div class="radio-group col3">
-        <div class="ropt" onclick="sel(this,'dependents')">No</div>
-        <div class="ropt" onclick="sel(this,'dependents')">Possible en el futur</div>
-        <div class="ropt" onclick="sel(this,'dependents')">Sí, ara mateix</div>
-      </div>
-    </div>
 
     <div class="field">
       <label>Tens assegurança de vida o invalidesa?</label>
@@ -627,7 +620,7 @@ input[type="range"]::-moz-range-thumb {
 
     <div class="nav-row">
       <button class="btn-back" onclick="go(0)">← Enrere</button>
-      <button class="btn-next" onclick="go(2)">Continua →</button>
+      <button class="btn-next" onclick="validarPas1()">Continua →</button>
     </div>
   </div>
 
@@ -666,16 +659,6 @@ input[type="range"]::-moz-range-thumb {
 
     <div class="section-title">Altres dades financeres</div>
     <div class="card">
-      <div class="field" style="margin-bottom:1rem">
-        <label>D'on ve principalment el que has acumulat fins ara?</label>
-        <div class="radio-group">
-          <div class="ropt" onclick="sel(this,'origen')">Estalvi de la feina</div>
-          <div class="ropt" onclick="sel(this,'origen')">Herència o donació</div>
-          <div class="ropt" onclick="sel(this,'origen')">Venda d'immoble o negoci</div>
-          <div class="ropt" onclick="sel(this,'origen')">Diverses fonts</div>
-        </div>
-      </div>
-
       <div class="field" style="margin-bottom:0">
         <label>Estimes que cobràs una pensió pública decent quan et jubilis?</label>
         <div class="radio-group">
@@ -700,12 +683,24 @@ input[type="range"]::-moz-range-thumb {
     <div class="block-label"><div class="block-num">3</div><span class="block-title">On tens els diners ara</span></div>
 
     <div class="section-title">On tens els diners?</div>
-    <div style="background:var(--ac-dim2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:14px;font-size:13px;color:var(--text2)">
+    <div style="background:var(--ac-dim2);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--text2)">
       Estalvis totals: <strong style="color:var(--ac)" id="sav-display">5.000-20.000€</strong>
-      <span style="color:var(--text3);font-size:12px;margin-left:6px">· Indica com els tens distribuïts</span>
+      <span style="color:var(--text3);font-size:12px;margin-left:6px">· Indica com els tens distribuïts (aproximat)</span>
     </div>
-    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.6">Marca aproximadament on tens els diners. Estrictament confidencial.</p>
-    <div id="assets-list"></div>
+    <div id="dist-bars-wrap">
+      <div id="dist-bars"></div>
+      <div id="dist-total-row" style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);">
+        <span style="font-size:14px;color:var(--text2)">Total assignat</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <strong id="dist-total" style="font-size:22px;font-family:'Playfair Display',serif;color:var(--ac)">0%</strong>
+          <span style="font-size:13px;color:var(--text3)">/ 100%</span>
+          <span id="dist-ok" style="font-size:13px;color:var(--green);display:none">✓ Perfecte</span>
+        </div>
+      </div>
+      <div id="dist-warn" style="display:none;margin-top:8px;padding:12px 16px;background:rgba(192,80,77,0.12);border:1px solid rgba(192,80,77,0.4);border-radius:var(--r);font-size:14px;font-weight:600;color:#e07070;text-align:center;">
+        ⚠ El repartiment ha de sumar exactament 100% per continuar
+      </div>
+    </div>
 
     <div class="field" style="margin-top:1.25rem">
       <label>Treballes amb algun assessor o gestora en l'actualitat?</label>
@@ -718,7 +713,7 @@ input[type="range"]::-moz-range-thumb {
 
     <div class="nav-row">
       <button class="btn-back" onclick="go(2)">← Enrere</button>
-      <button class="btn-next" onclick="go(4)">Continua →</button>
+      <button class="btn-next" onclick="validarDist()">Continua →</button>
     </div>
   </div>
 
@@ -731,10 +726,10 @@ input[type="range"]::-moz-range-thumb {
     <div class="field">
       <label>Situació habitatge principal</label>
       <div class="radio-group">
-        <div class="ropt" onclick="togImmo(this,'immoP','No, lloguer')">No, lloguer</div>
-        <div class="ropt" onclick="togImmo(this,'immoP','No, altres')">No, altres</div>
-        <div class="ropt" onclick="togImmo(this,'immoP','Sí, amb hipoteca')">Sí, amb hipoteca</div>
-        <div class="ropt" onclick="togImmo(this,'immoP','Sí, sense hipoteca')">Sí, sense hipoteca</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','No propietari · lloguer')">No propietari · lloguer</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','No propietari · altres')">No propietari · altres</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','Propietari · amb hipoteca')">Propietari · amb hipoteca</div>
+        <div class="ropt" onclick="togImmo(this,'immoP','Propietari · sense hipoteca')">Propietari · sense hipoteca</div>
       </div>
     </div>
     <div class="sub-panel" id="sub-immoP">
@@ -771,30 +766,21 @@ input[type="range"]::-moz-range-thumb {
     </div>
 
     <div class="field" style="margin-top:1rem">
-      <label>Tens altres immobles en propietat?</label>
+      <label>Tens altres immobles (vivendes, locals, garatges...) en propietat? Quants?</label>
       <div class="radio-group">
         <div class="ropt" onclick="togImmo(this,'immoA','No')">No</div>
-        <div class="ropt" onclick="togImmo(this,'immoA','Sí, 1 habitatge')">Sí, 1 habitatge</div>
-        <div class="ropt" onclick="togImmo(this,'immoA','Sí, 2 habitatges')">Sí, 2 habitatges</div>
-        <div class="ropt" onclick="togImmo(this,'immoA','Altres situacions')">Altres situacions</div>
+        <div class="ropt" onclick="togImmo(this,'immoA','1')">1</div>
+        <div class="ropt" onclick="togImmo(this,'immoA','2')">2</div>
+        <div class="ropt" onclick="togImmo(this,'immoA','3 o més')">3 o més</div>
       </div>
     </div>
-    <div class="card" style="margin-top:.75rem">
-      <div class="slider-wrap">
-        <div class="slider-label-row">
-          <span class="slider-label">Valor total aproximat de tots els immobles</span>
-          <span class="slider-val" id="valImmoTotalVal">100.000-250.000€</span>
-        </div>
-        <input type="range" id="val-immo-slider" min="0" max="6" value="1" oninput="updValImmoTotal()">
-        <p style="font-size:11px;color:var(--text3);margin-top:6px">Inclou habitatge principal i altres immobles en propietat</p>
-      </div>
-    </div>
+
 
     <div class="sub-panel" id="sub-immoA">
       <div class="sub-inner">
         <div class="slider-wrap" style="margin-bottom:18px">
           <div class="slider-label-row">
-            <span class="slider-label">Valor aproximat dels altres immobles</span>
+            <span class="slider-label">Valor total net aproximat d'aquests immobles, excloent l'habitatge habitual</span>
             <span class="slider-val" id="valAVal">100.000-250.000€</span>
           </div>
           <input type="range" id="val-a-slider" min="0" max="5" value="1" oninput="updValA()">
@@ -816,7 +802,7 @@ input[type="range"]::-moz-range-thumb {
         <div class="ropt" onclick="sel(this,'deutes')">No, cap deute</div>
         <div class="ropt" onclick="sel(this,'deutes')">Crèdit cotxe / consum</div>
         <div class="ropt" onclick="sel(this,'deutes')">Targetes de crèdit</div>
-        <div class="ropt" onclick="sel(this,'deutes')">Diversos / significatius</div>
+        <div class="ropt" onclick="sel(this,'deutes')">Altres, però significatius</div>
       </div>
     </div>
 
@@ -845,8 +831,7 @@ input[type="range"]::-moz-range-thumb {
       <div class="radio-group col1" id="objectiusGrid">
         <div class="ropt" onclick="selObj(this)">Tenir un coixí per si perdo la feina o passa alguna cosa</div>
         <div class="ropt" onclick="selObj(this)">Complementar la pensió i viure bé quan em jubili</div>
-        <div class="ropt" onclick="selObj(this)">Generar rendes periòdiques sense tocar el capital</div>
-        <div class="ropt" onclick="selObj(this)">Fer créixer el patrimoni al màxim possible a llarg termini</div>
+        <div class="ropt" onclick="selObj(this)">Generar rendes complementàries periòdiques sense tocar el capital</div>
         <div class="ropt" onclick="selObj(this)">Assolir la llibertat financera, deixar de dependre d'una nòmina</div>
         <div class="ropt" onclick="selObj(this)">Deixar patrimoni als fills o hereus</div>
         <div class="ropt" onclick="selObj(this)">Altres, explica'm</div>
@@ -858,34 +843,16 @@ input[type="range"]::-moz-range-thumb {
     </div>
 
     <div class="field">
-      <label>Quan necessitaràs accedir als diners invertits?</label>
+      <label>Quin horitzó d'inversió preveus tenir?</label>
       <div class="radio-group">
-        <div class="ropt" onclick="selQ(this,'q_hor',1)">En menys d'1 any</div>
-        <div class="ropt" onclick="selQ(this,'q_hor',2)">Entre 1 i 3 anys</div>
-        <div class="ropt" onclick="selQ(this,'q_hor',3)">Entre 3 i 10 anys</div>
-        <div class="ropt" onclick="selQ(this,'q_hor',4)">En més de 10 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',1)">Menys de 2 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',2)">Entre 2 i 5 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',3)">Entre 5 i 10 anys</div>
+        <div class="ropt" onclick="selQ(this,'q_hor',4)">Més de 10 anys</div>
       </div>
     </div>
 
-    <div class="field">
-      <label>Tens algú de confiança amb qui parles de finances?</label>
-      <div class="radio-group">
-        <div class="ropt" onclick="sel(this,'confiance')">No, és un tema privat</div>
-        <div class="ropt" onclick="sel(this,'confiance')">Sí, família / parella</div>
-        <div class="ropt" onclick="sel(this,'confiance')">Sí, amics del sector</div>
-        <div class="ropt" onclick="sel(this,'confiance')">Sí, assessor / gestor</div>
-      </div>
-    </div>
 
-    <div class="field">
-      <label>Segueixes algun referent o creador de contingut financer?</label>
-      <div class="radio-group">
-        <div class="ropt" onclick="sel(this,'referent')">No, no en segueixo cap</div>
-        <div class="ropt" onclick="sel(this,'referent')">Algun, de forma ocasional</div>
-        <div class="ropt" onclick="sel(this,'referent')">Sí, segueixo diversos</div>
-        <div class="ropt" onclick="sel(this,'referent')">Sí, i aplico el que aprenc</div>
-      </div>
-    </div>
 
     <div class="nav-row">
       <button class="btn-back" onclick="go(4)">← Enrere</button>
@@ -934,7 +901,7 @@ input[type="range"]::-moz-range-thumb {
     </div>
 
     <div class="field">
-      <label>4 · Quina pèrdua màxima pots tolerar emocionalment?</label>
+      <label>4 · Quina pèrdua màxima creus que pots tolerar emocionalment?</label>
       <div class="radio-group">
         <div class="ropt" onclick="selQ(this,'q4',1)">Menys del 5%</div>
         <div class="ropt" onclick="selQ(this,'q4',2)">5% - 15%</div>
@@ -1058,11 +1025,51 @@ const ASSETS = [
 const AMT = ['< 5.000€','5.000-20.000€','20.000-50.000€','50.000-100.000€','100.000-250.000€','> 250.000€'];
 
 const DESPESES_OPTS = [
-  'Cap despesa gran prevista','Cotxe nou','Casament',
+  'Cotxe nou','Casament',
   'Fills / ampliació família','Entrada per habitatge','Reformes / obra',
-  'Muntar un negoci','Estudis propis o dels fills','Viatge important',
-  'Altra despesa significativa',
+  'Muntar un negoci','Altra despesa significativa',
 ];
+
+// ─── VALIDACIÓ DISTRIBUCIÓ ────────────────────────────
+function validarDist() {
+  const total = Object.values(distVals).reduce((a,b)=>a+b,0);
+  if (total !== 100) {
+    const warn = document.getElementById('dist-warn');
+    warn.style.display = 'block';
+    warn.style.animation = 'none';
+    warn.offsetHeight;
+    warn.style.animation = 'shake 0.4s ease';
+    document.getElementById('dist-bars-wrap').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  go(4);
+}
+
+// ─── VALIDACIÓ PAS 1 ──────────────────────────────────
+function validarPas1() {
+  const nom   = document.getElementById('nom').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const tel   = document.getElementById('telefon').value.trim();
+  const errs  = [];
+  if (!nom)   errs.push('nom');
+  if (!email || !email.includes('@')) errs.push('email');
+  if (!tel)   errs.push('telefon');
+
+  ['nom','email','telefon'].forEach(id => {
+    const el = document.getElementById(id);
+    if (errs.includes(id)) {
+      el.style.borderColor = '#c0504d';
+    } else {
+      el.style.borderColor = '';
+    }
+  });
+
+  if (errs.length > 0) {
+    document.getElementById('nom').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  go(2);
+}
 
 // ─── PERFILS ──────────────────────────────────────────
 const PROFILES = [
@@ -1089,13 +1096,59 @@ const qVals = {};
 let despesesSel = [];
 
 // ─── RENDER ASSETS ────────────────────────────────────
-function renderAssets() {
-  document.getElementById('assets-list').innerHTML = ASSETS.map(a => `
-    <div class="asset-row" id="ar-${a.id}" onclick="togAsset('${a.id}')">
-      <div class="asset-check" id="chk-${a.id}"></div>
-      <span class="asset-icon">${a.icon}</span>
-      <span class="asset-name">${a.name}</span>
+// ─── DISTRIBUCIÓ ESTALVIS (barres 100%) ──────────────
+const DIST_CATS = [
+  {id:'d_liq',   label:'Compte corrent / liquiditat',       color:'#c9a84c'},
+  {id:'d_dep',   label:'Dipòsits / renda fixa',             color:'#5b9bd5'},
+  {id:'d_inv',   label:'Inversió (fons, ETFs, accions)',    color:'#1D9E75'},
+  {id:'d_pens',  label:'Pla de pensions / EPSV',            color:'#9b59b6'},
+  {id:'d_or',    label:'Or / metalls preciosos',            color:'#E07B39'},
+  {id:'d_cripto',label:'Criptoactius',                      color:'#888'},
+  {id:'d_crowd', label:'Crowdlending / inversió alternativa',color:'#5dade2'},
+  {id:'d_altres',label:'Altres (startups, capital risc...)', color:'#a569bd'},
+];
+let distVals = {d_liq:25, d_dep:25, d_inv:25, d_pens:15, d_or:5, d_cripto:5, d_crowd:0, d_altres:0};
+
+function renderDistBars() {
+  document.getElementById('dist-bars').innerHTML = DIST_CATS.map(c => `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:13px;color:var(--text2)">${c.label}</span>
+        <span style="font-size:18px;font-weight:600;font-family:'Playfair Display',serif;color:${c.color};min-width:44px;text-align:right" id="lbl-${c.id}">${distVals[c.id]}%</span>
+      </div>
+      <div style="position:relative;height:8px;background:var(--bg3);border-radius:4px;">
+        <div id="bar-${c.id}" style="height:100%;border-radius:4px;background:${c.color};width:${distVals[c.id]}%;transition:width 0.2s;"></div>
+      </div>
+      <input type="range" min="0" max="100" step="5" value="${distVals[c.id]}"
+        oninput="updDist('${c.id}',this.value)"
+        style="width:100%;margin-top:4px;">
     </div>`).join('');
+  updDistTotal();
+}
+
+function updDist(id, val) {
+  distVals[id] = +val;
+  document.getElementById('lbl-'+id).textContent = val+'%';
+  document.getElementById('bar-'+id).style.width = (+val)+'%';
+  const total = Object.values(distVals).reduce((a,b)=>a+b,0);
+  document.getElementById('dist-total').textContent = total+'%';
+  if (total === 100) {
+    document.getElementById('dist-ok').style.display = 'inline';
+    document.getElementById('dist-warn').style.display = 'none';
+  } else {
+    document.getElementById('dist-ok').style.display = 'none';
+    document.getElementById('dist-warn').style.display = 'none';
+  }
+}
+
+function updDistTotal() {
+  document.getElementById('dist-total').textContent = '100%';
+  document.getElementById('dist-ok').style.display = 'inline';
+  document.getElementById('dist-warn').style.display = 'none';
+}
+
+function renderAssets() {
+  renderDistBars();
 }
 
 function renderDespeses() {
@@ -1158,9 +1211,10 @@ function togImmo(el, group, val) {
   document.querySelectorAll(`[onclick*="togImmo(this,'${group}'"]`).forEach(e => e.classList.remove('sel'));
   el.classList.add('sel');
   radio[group] = val;
-  document.getElementById('sub-'+group).classList.toggle('show', val.startsWith('Sí'));
+  document.getElementById('sub-'+group).classList.toggle('show', val !== 'No' && !val.startsWith('No propietari') && !val.startsWith('Propietari'));
+  if (group === 'immoP') document.getElementById('sub-immoP').classList.toggle('show', val.startsWith('Propietari'));
   if (group === 'immoP') {
-    document.getElementById('hip-fields').style.display = val === 'Sí, amb hipoteca' ? 'block' : 'none';
+    document.getElementById('hip-fields').style.display = val === 'Propietari · amb hipoteca' ? 'block' : 'none';
   }
 }
 
