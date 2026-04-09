@@ -1409,10 +1409,39 @@ function showResult(d) {
       <p style="font-size:13px;color:rgba(0,0,0,0.55);line-height:1.5">Videotrucada sense compromís. T'explico com puc ajudar-te i resolem dubtes.</p>
     </a>
 
-    <a href="https://calendly.com/martiniroca/sessio-assessorament-69-h" target="_blank" class="cta-card cta-card-secondary">
-      <p style="font-size:15px;font-weight:700;color:var(--ac);margin-bottom:5px">Reserva una sessió d'assessorament, 69€/h →</p>
-      <p style="font-size:13px;color:var(--text3);line-height:1.5">Sessió individual a fons. Anàlisi de la teva situació i proposta personalitzada.</p>
-    </a>
+    <div class="cta-card cta-card-secondary" style="cursor:pointer" onclick="document.getElementById('sessio69-form').style.display=document.getElementById('sessio69-form').style.display==='none'?'block':'none'">
+      <p style="font-size:15px;font-weight:700;color:var(--ac);margin-bottom:5px">Sol·licita una sessió d'assessorament, 69€/h →</p>
+      <p style="font-size:13px;color:var(--text3);line-height:1.5">Sessió individual a fons. Deixa'm les teves dades i em posaré en contacte per acordar dia, hora i mètode de pagament.</p>
+    </div>
+    <div id="sessio69-form" style="display:none;background:var(--card);border:1px solid var(--ac);border-radius:14px;padding:20px;margin-top:10px">
+      <p style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Dades per a la sessió d'assessorament (69€/h)</p>
+      <input type="text" id="s69_nom" placeholder="Nom complet" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+      <input type="email" id="s69_email" placeholder="Email" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+      <input type="tel" id="s69_tel" placeholder="Telèfon" style="width:100%;padding:10px;margin-bottom:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px">
+      <textarea id="s69_franja" placeholder="Franja horària preferida (ex: matins, tardes, cap de setmana...)" style="width:100%;padding:10px;margin-bottom:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;min-height:60px"></textarea>
+      <button onclick="enviarSessio69('fitxa')" style="width:100%;padding:12px;background:var(--ac);color:#111;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer">Enviar sol·licitud →</button>
+      <p id="s69_msg" style="display:none;margin-top:10px;padding:12px;border-radius:8px;text-align:center;font-size:14px"></p>
+    </div>
+    <script>
+    async function enviarSessio69(origen){
+      const nom=document.getElementById('s69_nom').value.trim();
+      const email=document.getElementById('s69_email').value.trim();
+      const tel=document.getElementById('s69_tel').value.trim();
+      const franja=document.getElementById('s69_franja').value.trim();
+      const msg=document.getElementById('s69_msg');
+      if(!nom||!email||!tel){msg.style.display='block';msg.style.background='#fee';msg.style.color='#c00';msg.textContent='Si us plau, omple nom, email i telèfon.';return;}
+      try{
+        await emailjs.send(CONFIG.EMAILJS_SERVICE_ID,CONFIG.EMAILJS_TEMPLATE_ID,{
+          nom:nom, email:email, telefon:tel,
+          message:'SOL·LICITUD SESSIÓ 69€/h\nFranja: '+franja+'\nOrigen: '+origen+'\nNom: '+nom+'\nEmail: '+email+'\nTel: '+tel
+        });
+        msg.style.display='block';msg.style.background='#e8f5e9';msg.style.color='#2e7d32';
+        msg.textContent='✓ Rebut! Em posaré en contacte amb tu aviat per acordar la videollamada i el mètode de pagament.';
+        document.getElementById('s69_nom').value='';document.getElementById('s69_email').value='';
+        document.getElementById('s69_tel').value='';document.getElementById('s69_franja').value='';
+      }catch(e){msg.style.display='block';msg.style.background='#fee';msg.style.color='#c00';msg.textContent='Error enviant. Prova de nou o escriu a martiniroca@gmail.com';}
+    }
+    </script>
 
     <div class="cta-card cta-card-tertiary"
       onclick="document.getElementById('noencaixa-form').style.display=document.getElementById('noencaixa-form').style.display==='none'?'block':'none'">
